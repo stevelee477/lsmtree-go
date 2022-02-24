@@ -2,7 +2,6 @@ package binarytree
 
 import (
 	"bytes"
-	"fmt"
 )
 
 type Tree struct {
@@ -55,10 +54,10 @@ func (t *Tree) Put(key, value []byte) bool {
 	return exists
 }
 
-func (t *Tree) Get(key []byte) ([]byte, error) {
-	value, exists := search(&t.root, key)
-	if exists {
-		return value, nil
-	}
-	return nil, fmt.Errorf("key not found")
+func (t *Tree) Get(key []byte) ([]byte, bool) {
+	return search(&t.root, key)
+}
+
+func (t *Tree) Clear() {
+	t.root = nil
 }

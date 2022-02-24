@@ -11,7 +11,7 @@ func (t *Tree) Iterator() *Iterator {
 	return &Iterator{cur: cur}
 }
 
-func (iter *Iterator) Next() ([]byte, []byte) {
+func (iter *Iterator) Next() ([]byte, []byte, error) {
 	for iter.cur != nil {
 		iter.stack = append(iter.stack, iter.cur)
 		iter.cur = iter.cur.left
@@ -21,7 +21,7 @@ func (iter *Iterator) Next() ([]byte, []byte) {
 	node := iter.cur
 	iter.cur = iter.cur.right
 
-	return node.key, node.value
+	return node.key, node.value, nil
 }
 
 func (iter *Iterator) HasNext() bool {

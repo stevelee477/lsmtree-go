@@ -27,14 +27,14 @@ func TestBinaryTreeInsert(t *testing.T) {
 	for _, elem := range elems {
 		tree.Put(elem.Key, elem.Value)
 	}
-	value, err := tree.Get([]byte("1"))
-	if err != nil {
-		t.Errorf("Error getting value for key 1: %v %v", value, err)
+	value, exists := tree.Get([]byte("1"))
+	if !exists {
+		t.Errorf("Error getting value for key 1: %v", value)
 	}
 	t.Logf("Value for key 1: %v", string(value))
-	value, err = tree.Get([]byte("8"))
-	if err == nil {
-		t.Errorf("Error getting value for key 8: %v %v", value, err)
+	value, exists = tree.Get([]byte("8"))
+	if exists {
+		t.Errorf("Error getting value for key 8: %v", value)
 	}
 	t.Logf("Value for key 8: %v", nil)
 }
@@ -58,7 +58,7 @@ func TestBinaryTreeIterator(t *testing.T) {
 	iter := tree.Iterator()
 	prev := []byte("")
 	for iter.HasNext() {
-		key, _ := iter.Next()
+		key, _, _ := iter.Next()
 		t.Logf("prev %v key %v", string(prev), string(key))
 		if bytes.Compare(key, prev) < 0 {
 			t.Errorf("Iterator returned keys in wrong order prev %v key %v", string(prev), string(key))
