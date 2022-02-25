@@ -14,7 +14,10 @@ type LSMTree struct {
 
 const (
 	// memTableThreshold is the number of key-value pairs in the memTable before it is flushed to disk.
-	memTableThreshold = 3
+	memTableThreshold = 4
+
+	// mergeThreshold is the number of disk tables to merge.
+	mergeThreshold = 2
 )
 
 func NewLSMTree(dbDir string, sparseKeyDistance int) *LSMTree {
@@ -38,6 +41,16 @@ func (t *LSMTree) Put(key, value []byte) error {
 		if err := t.Flush(); err != nil {
 			return err
 		}
+	}
+
+	if t.diskTableNum > mergeThreshold {
+		// merge oldest and oldest+1 disk tables.
+		oldest := t.diskTableLastIndex - t.diskTableNum + 1
+		if err := mergeDiskTables(t.dbDir, oldest, oldest+1, t.sparseKeyDistance); err != nil {
+			return err
+		}
+
+		t.diskTableNum--
 	}
 
 	return nil

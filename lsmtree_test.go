@@ -67,6 +67,11 @@ func TestLSMTreeDiskTableSparse(t *testing.T) {
 		{Key: []byte("5"), Value: []byte("Five")},
 		{Key: []byte("6"), Value: []byte("Six")},
 		{Key: []byte("7"), Value: []byte("Seven")},
+		{Key: []byte("8"), Value: []byte("Eight")},
+		{Key: []byte("9"), Value: []byte("Nine")},
+		{Key: []byte("10"), Value: []byte("Ten")},
+		{Key: []byte("11"), Value: []byte("Eleven")},
+		{Key: []byte("12"), Value: []byte("Twelve")},
 	}
 
 	dir := os.TempDir()
@@ -95,4 +100,6 @@ func TestLSMTreeDiskTableSparse(t *testing.T) {
 	tree.Get([]byte("4"))
 	// searchSparseIndex: key 4, from 0, to 0, exists true
 	// searchSparseIndex: key 4, from 50, to 0, exists true
+
+	tree.Get([]byte("12"))
 }

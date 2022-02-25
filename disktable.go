@@ -24,7 +24,7 @@ func createDiskTable(mt *memTable, dir string, index, sparseKeyDistance int) err
 	// prefix of the database file
 	prefix := strconv.Itoa(index) + "_"
 
-	writer, err := createDiskTableWriter(dir, prefix, sparseKeyDistance)
+	writer, err := newDiskTableWriter(dir, prefix, sparseKeyDistance)
 	if err != nil {
 		return err
 	}
@@ -202,8 +202,8 @@ type diskTableWriter struct {
 	keyNum, dataPos, indexPos int
 }
 
-// createDiskTableWriter create write for writing diskTable
-func createDiskTableWriter(dir, prefix string, sparseKeyDistance int) (*diskTableWriter, error) {
+// newDiskTableWriter create write for writing diskTable
+func newDiskTableWriter(dir, prefix string, sparseKeyDistance int) (*diskTableWriter, error) {
 	dataPath := path.Join(dir, prefix+diskTableDataFileNamePrefix)
 	dataFile, err := os.OpenFile(dataPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC|os.O_APPEND, 0600)
 	if err != nil {
@@ -288,6 +288,48 @@ func (writer *diskTableWriter) close() error {
 	}
 
 	if err := writer.sparseIndexFile.Close(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// deleteDiskTables delete all diskTable files
+func deleteDiskTables(dir, prefix string) error {
+	dataPath := path.Join(dir, prefix+diskTableDataFileNamePrefix)
+	if err := os.Remove(dataPath); err != nil {
+		return err
+	}
+
+	indexPath := path.Join(dir, prefix+diskTableIndexFileNamePrefix)
+	if err := os.Remove(indexPath); err != nil {
+		return err
+	}
+
+	sparseIndexPath := path.Join(dir, prefix+diskTableSparseIndexFileNamePrefix)
+	if err := os.Remove(sparseIndexPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// renameDiskTables rename all three diskTable files
+func renameDiskTables(dir, from, to string) error {
+	dataPathFrom := path.Join(dir, from+diskTableDataFileNamePrefix)
+	dataPathTo := path.Join(dir, to+diskTableDataFileNamePrefix)
+	if err := os.Rename(dataPathFrom, dataPathTo); err != nil {
+		return err
+	}
+
+	indexPathFrom := path.Join(dir, from+diskTableIndexFileNamePrefix)
+	indexPathTo := path.Join(dir, to+diskTableIndexFileNamePrefix)
+	if err := os.Rename(indexPathFrom, indexPathTo); err != nil {
+		return err
+	}
+
+	sparseIndexPathFrom := path.Join(dir, from+diskTableSparseIndexFileNamePrefix)
+	sparseIndexPathTo := path.Join(dir, to+diskTableSparseIndexFileNamePrefix)
+	if err := os.Rename(sparseIndexPathFrom, sparseIndexPathTo); err != nil {
 		return err
 	}
 	return nil
