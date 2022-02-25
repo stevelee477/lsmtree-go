@@ -53,3 +53,46 @@ func TestLSMTreeDiskTable(t *testing.T) {
 	value, _, _ := tree.Get([]byte("7"))
 	t.Logf("Value for key 7: %s", value)
 }
+
+func TestLSMTreeDiskTableSparse(t *testing.T) {
+	type Element struct {
+		Key   []byte
+		Value []byte
+	}
+	elems := []Element{
+		{Key: []byte("1"), Value: []byte("One")},
+		{Key: []byte("2"), Value: []byte("Two")},
+		{Key: []byte("3"), Value: []byte("Three")},
+		{Key: []byte("4"), Value: []byte("Four")},
+		{Key: []byte("5"), Value: []byte("Five")},
+		{Key: []byte("6"), Value: []byte("Six")},
+		{Key: []byte("7"), Value: []byte("Seven")},
+	}
+
+	dir := os.TempDir()
+	tree := lsmtree.NewLSMTree(dir, 2)
+	t.Logf("Tmp dir: %s", dir)
+	for _, elem := range elems {
+		tree.Put(elem.Key, elem.Value)
+	}
+
+	value, _, err := tree.Get([]byte("2"))
+	if err != nil {
+		t.Errorf("Get failed: %s", err)
+	}
+	t.Logf("Value for key 2: %s", value)
+	// searchSparseIndex: key 2, from 0, to 0, exists false
+	// searchSparseIndex: key 2, from 0, to 50, exists true
+
+	tree.Get([]byte("3"))
+	// searchSparseIndex: key 3, from 0, to 0, exists false
+	// searchSparseIndex: key 3, from 50, to 50, exists true
+
+	tree.Get([]byte("1"))
+	//searchSparseIndex: key 1, from 0, to 0, exists false
+	//searchSparseIndex: key 1, from 0, to 0, exists true
+
+	tree.Get([]byte("4"))
+	// searchSparseIndex: key 4, from 0, to 0, exists true
+	// searchSparseIndex: key 4, from 50, to 0, exists true
+}

@@ -19,9 +19,11 @@ const (
 
 func NewLSMTree(dbDir string, sparseKeyDistance int) *LSMTree {
 	return &LSMTree{
-		memTable:          newMemTable(),
-		dbDir:             dbDir,
-		sparseKeyDistance: sparseKeyDistance,
+		memTable:           newMemTable(),
+		diskTableNum:       0,
+		diskTableLastIndex: -1,
+		dbDir:              dbDir,
+		sparseKeyDistance:  sparseKeyDistance,
 	}
 }
 
@@ -43,7 +45,22 @@ func (t *LSMTree) Put(key, value []byte) error {
 
 func (t *LSMTree) Get(key []byte) ([]byte, bool, error) {
 	value, exists := t.memTable.get(key)
-	return value, exists, nil
+	if exists {
+		return value, exists, nil
+	}
+
+	diskTableFirstIndex := t.diskTableLastIndex - t.diskTableNum + 1
+	for i := t.diskTableLastIndex; i >= diskTableFirstIndex; i-- {
+		value, exists, err := searchDiskTable(t.dbDir, i, key)
+		if err != nil {
+			return nil, false, err
+		}
+		if exists {
+			return value, exists, nil
+		}
+	}
+
+	return nil, false, nil
 }
 
 func (t *LSMTree) Flush() error {
