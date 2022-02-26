@@ -4,8 +4,6 @@
 
 ## TODO
 
-- Merge(Log compaction)
-- Log init
 - WAL
 - Bloom filter
 - Better test case
