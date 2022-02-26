@@ -7,7 +7,7 @@ import (
 
 const (
 	// metaDataFileName is the name of metadata file
-	metaDataFileName = "metadata"
+	metaDataFileName = "metadata.dat"
 )
 
 // readMetaData reads metadata from disk contains diskTableNum and diskTableLastIndex

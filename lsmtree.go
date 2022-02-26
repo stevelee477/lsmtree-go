@@ -1,5 +1,10 @@
 package lsmtree
 
+import (
+	"os"
+	"path"
+)
+
 type LSMTree struct {
 	// memTable stays in memory.
 	// Contains Key-Value pairs to be flushed to disk.
@@ -10,6 +15,8 @@ type LSMTree struct {
 
 	dbDir             string
 	sparseKeyDistance int
+
+	wal *os.File
 }
 
 const (
@@ -18,6 +25,9 @@ const (
 
 	// mergeThreshold is the number of disk tables to merge.
 	mergeThreshold = 2
+
+	// walFileName is the name of WAL file
+	walFileName = "wal.dat"
 )
 
 func NewLSMTree(dbDir string, sparseKeyDistance int) *LSMTree {
@@ -25,18 +35,35 @@ func NewLSMTree(dbDir string, sparseKeyDistance int) *LSMTree {
 	if err != nil {
 		panic(err)
 	}
+
+	walPath := path.Join(dbDir, walFileName)
+	wal, err := os.OpenFile(walPath, os.O_RDWR|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	mt, err := loadWAL(wal)
+	if err != nil {
+		panic(err)
+	}
+
 	return &LSMTree{
-		memTable:           newMemTable(),
+		memTable:           mt,
 		diskTableNum:       diskTableNum,
 		diskTableLastIndex: diskTableLastIndex,
 		dbDir:              dbDir,
 		sparseKeyDistance:  sparseKeyDistance,
+		wal:                wal,
 	}
 }
 
 func (t *LSMTree) Put(key, value []byte) error {
-	err := t.memTable.put(key, value)
-	if err != nil {
+
+	if err := appendWAL(t.wal, key, value); err != nil {
+		return err
+	}
+
+	if err := t.memTable.put(key, value); err != nil {
 		return err
 	}
 

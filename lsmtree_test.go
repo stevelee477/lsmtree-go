@@ -103,3 +103,13 @@ func TestLSMTreeDiskTableSparse(t *testing.T) {
 
 	tree.Get([]byte("12"))
 }
+
+func TestWAL(t *testing.T) {
+	dir := os.TempDir()
+	tree := lsmtree.NewLSMTree(dir, 2)
+	value, _, err := tree.Get([]byte("3"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Value for key 3: %s", value)
+}
