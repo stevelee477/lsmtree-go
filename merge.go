@@ -124,8 +124,6 @@ func merge(dfi1, dfi2 *dataFileIterator, w *diskTableWriter) error {
 			key2, value2 = nil, nil
 		}
 	}
-
-	return nil
 }
 
 // dataFileIterator is an iterator for diskTable data file.

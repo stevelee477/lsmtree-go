@@ -21,10 +21,14 @@ const (
 )
 
 func NewLSMTree(dbDir string, sparseKeyDistance int) *LSMTree {
+	diskTableNum, diskTableLastIndex, err := readMetaData(dbDir)
+	if err != nil {
+		panic(err)
+	}
 	return &LSMTree{
 		memTable:           newMemTable(),
-		diskTableNum:       0,
-		diskTableLastIndex: -1,
+		diskTableNum:       diskTableNum,
+		diskTableLastIndex: diskTableLastIndex,
 		dbDir:              dbDir,
 		sparseKeyDistance:  sparseKeyDistance,
 	}
@@ -47,6 +51,11 @@ func (t *LSMTree) Put(key, value []byte) error {
 		// merge oldest and oldest+1 disk tables.
 		oldest := t.diskTableLastIndex - t.diskTableNum + 1
 		if err := mergeDiskTables(t.dbDir, oldest, oldest+1, t.sparseKeyDistance); err != nil {
+			return err
+		}
+
+		newDiskTableNum := t.diskTableNum - 1
+		if err := writeMetaData(t.dbDir, newDiskTableNum, t.diskTableLastIndex); err != nil {
 			return err
 		}
 
@@ -81,6 +90,10 @@ func (t *LSMTree) Flush() error {
 	newDiskTableLastIndex := t.diskTableLastIndex + 1
 
 	if err := createDiskTable(t.memTable, t.dbDir, newDiskTableLastIndex, t.sparseKeyDistance); err != nil {
+		return err
+	}
+
+	if err := writeMetaData(t.dbDir, newDiskTableNum, newDiskTableLastIndex); err != nil {
 		return err
 	}
 
