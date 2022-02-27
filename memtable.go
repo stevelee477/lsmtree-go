@@ -1,21 +1,24 @@
 package lsmtree
 
-import "lsmtree/binarytree"
+import (
+	"lsmtree/skiplist"
+)
 
 // MemTable. In memory structure for storing key-value pairs. Using bst to store for now.
 type memTable struct {
-	tree *binarytree.Tree
+	// tree *binarytree.Tree
+	list *skiplist.SkipList
 	keys int
 }
 
 // newMemTable creates a new memTable.
 func newMemTable() *memTable {
-	return &memTable{tree: binarytree.NewTree()}
+	return &memTable{list: skiplist.NewSkipList()}
 }
 
 // Put inserts a key-value pair into the memTable.
 func (mt *memTable) put(key, value []byte) error {
-	exists := mt.tree.Put(key, value)
+	exists := mt.list.Put(key, value)
 	if !exists {
 		mt.keys++
 	}
@@ -26,23 +29,23 @@ func (mt *memTable) put(key, value []byte) error {
 // Get returns the value for the given key.
 // Returns <nil> for deleted keys.
 func (mt *memTable) get(key []byte) ([]byte, bool) {
-	return mt.tree.Get(key)
+	return mt.list.Get(key)
 }
 
 // clear clears the memTable.
 func (mt *memTable) clear() {
-	mt.tree.Clear()
+	mt.list.Clear()
 	mt.keys = 0
 }
 
 // memTableIterator is an iterator for the memTable.
 type memTableIterator struct {
 	//TODO: Change with a interface
-	it *binarytree.Iterator
+	it *skiplist.Iterator
 }
 
 func (mt *memTable) iterator() *memTableIterator {
-	return &memTableIterator{it: mt.tree.Iterator()}
+	return &memTableIterator{it: mt.list.Iterator()}
 }
 
 // next returns the next key-value pair in the memTable.

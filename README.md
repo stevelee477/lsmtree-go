@@ -5,6 +5,5 @@
 ## TODO
 
 - Bloom filter
-- Use Skip List to replace BST
 - Better test case
 - RPC(Maybe)

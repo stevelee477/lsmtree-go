@@ -7,7 +7,7 @@ import (
 )
 
 func TestLSMTreePut(t *testing.T) {
-	tree := lsmtree.NewLSMTree("/tmp/lsmtree", 1)
+	tree := lsmtree.NewLSMTree(os.TempDir(), 1)
 
 	key := []byte("key")
 	value := []byte("value")
